@@ -1,0 +1,495 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Tables {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+
+<style>
+    /* Table Styles */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        background-color: #f8f9fe;
+    }
+    th, td {
+        padding: 10px;
+        text-align: left;
+        border-bottom: 1px solid #e0e0e0;
+    }
+    th {
+        background-color: #5e72e4;
+        color: #fff;
+    }
+
+    /* Table Header Styles */
+    th.text-uppercase {
+        text-transform: uppercase;
+        font-size: 12px;
+        font-weight: bold;
+        opacity: 0.7;
+    }
+
+    /* Status Badge Styles */
+    .badge {
+        font-size: 12px;
+        font-weight: bold;
+        padding: 5px 10px;
+        border-radius: 15px;
+    }
+    .bg-gradient-success {
+        background: linear-gradient(45deg, #00f260, #0575e6);
+        color: white;
+    }
+    .bg-gradient-secondary {
+        background: linear-gradient(45deg, #00f260, #0575e6);
+        color: white;
+    }
+
+    /* Edit Link Styles */
+    .text-secondary {
+        color: #6e84a3;
+    }
+
+    /* Dropdown Styles */
+    .horizontal-container {
+        display: flex;
+        align-items: center;
+    }
+    /* Tooltip Styles (You may want to add CSS for tooltips) */
+    /* .tooltip {
+    /* Your tooltip styles here */
+    /*} */
+</style>
+
+{% endblock stylesheets %}
+
+{% block content %}
+<link href="/static/assets/css/tabulator.min.css" rel="stylesheet">
+<script type="text/javascript" src="/static/assets/js/tabulator.min.js"></script>
+<div class="container-fluid py-4">
+    <div class="row">
+      <div class="col-12">
+        <div class="card my-4">
+          <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
+            <div class="bg-gradient-primary shadow-primary border-radius-lg pt-4 pb-3">
+              <h6 class="text-white text-capitalize ps-3">Process data by object:</h6>
+              <select class="border-radius-lg" id="select-table" style="display: inline-block; margin-left: 15px;">
+                {% for option in options %}
+                    <option value="{{ option.value }}">{{ option.text }}</option>
+                {% endfor %}
+            </select>
+            </div>
+          </div>
+          <div class="card-body px-0 pb-2">
+            <div class="table-responsive p-0">
+                <!-- <table id="myTable" class="table align-items-center mb-0">
+                    <thead> -->
+                        <!-- Table header will be added dynamically using JavaScript -->
+                    <!-- </thead>
+                    <tbody> -->
+                        <!-- Data will be added dynamically using JavaScript -->
+                    <!-- </tbody>
+                </table> -->
+                <!-- <table id="data-table" class="table table-striped">
+                    <tbody></tbody>
+                </table> -->
+                <div id="table-container"></div>
+                
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+<script>
+        // // Sample data
+        // var data = [
+        //     ["23/04/18", "23/04/18", "23/04/18", "success"],
+        //     ["23/04/19", "23/04/19", "23/04/19", "waiting"],
+        //     ["23/04/20", "23/04/20", "23/04/20", "success"],
+        //     ["23/04/21", "23/04/21", "23/04/21", "success"],
+        //     ["23/04/22", "23/04/22", "23/04/22", "success"],
+        //     ["23/04/23", "23/04/23", "23/04/23", "success"],
+        // ];
+
+        // // Sample JSON data for select options
+        // var selectOptions = [
+        //     {"value": "407001", "label": "Амангельды отгрузка!!!"},
+        //     {"value": "407004", "label": "Амангельды емкость 1"},
+        //     {"value": "407005", "label": "Амангельды емкость 2"},
+        //     {"value": "407002", "label": "Жаркум отгрузка"},
+        //     {"value": "407006", "label": "Жаркум емкость 1"},
+        //     {"value": "407007", "label": "Жаркум емкость 2"},
+        //     {"value": "407003", "label": "Айракты отгрузка"},
+        //     {"value": "407008", "label": "Айракты емкость 1"},
+        //     {"value": "407009", "label": "Айракты емкость 2"},
+        // ];
+
+        // // Get the select element
+        // var selectTable = document.getElementById("select-table");
+
+        // // Populate select options from the JSON data
+        // for (var i = 0; i < selectOptions.length; i++) {
+        //     var option = document.createElement("option");
+        //     option.value = selectOptions[i].value;
+        //     option.textContent = selectOptions[i].label;
+        //     selectTable.appendChild(option);
+        // }  
+
+        // // Header labels
+        // var headerLabels = ["Дата события!", "Созданно", "Отправленно", "Статус", ""];
+
+        // // Get the table header
+        // var tableHeader = document.getElementById("myTable").getElementsByTagName('thead')[0];
+        // var headerRow = tableHeader.insertRow(0);
+
+        // // Create the table header based on headerLabels
+        // for (var i = 0; i < headerLabels.length; i++) {
+        //     var headerCell = headerRow.insertCell(i);
+        //     headerCell.innerHTML = headerLabels[i];
+        //     headerCell.className = "text-uppercase text-secondary text-xxs font-weight-bolder opacity-7";
+        // }
+
+        // // Get the table body
+        // var tableBody = document.getElementById("myTable").getElementsByTagName('tbody')[0];
+
+        // // Loop through the data and create table rows
+        // for (var i = 0; i < data.length; i++) {
+        //     var row = tableBody.insertRow(i);
+
+        //     for (var j = 0; j < data[i].length; j++) {
+        //         var cell = row.insertCell(j);
+        //         cell.innerHTML = data[i][j];
+        //     }
+
+        //     // Add the "Edit" column
+        //     var editCell = row.insertCell(data[i].length);
+        //     var editLink = document.createElement("a");
+        //     editLink.href = "javascript:;";
+        //     editLink.className = "text-secondary font-weight-bold text-xs";
+        //     editLink.innerHTML = "Edit";
+        //     editCell.appendChild(editLink);
+        // }
+
+    var columns
+    var selectedTable
+    var columnsNameType1 = ["Дата","Масса","Счетчик начало периода", "Счетчик конец периода", "Плотность"]
+    var columnsNameType2 = ["Дата","Масса","Уровень", "Плотность", "Температура"]
+    var objectListType1 = ["407001","407002","407003"]
+    var objectListType2 = ["407004","407005","407006","407007","407008","407009"]
+
+    // datas = [{'ID': 1, 'temperature': null, 'density': 741.1532, 'volume': null, 'massflowbegin': 74.84492, 'massflowend': 74.84658, 'mass': 0.001655579, 'datetime': '2023-08-28T13:00:00.000+00:00', 'createdAtDate': '2023-09-02T23:43:02.399+06:00'}, {'ID': 3, 'temperature': null, 'density': 734.9922, 'volume': null, 'massflowbegin': 74.8466, 'massflowend': 74.8466, 'mass': 0, 'datetime': '2023-09-02T13:00:00.000+00:00', 'createdAtDate': '2023-09-03T00:06:52.181+06:00'}, {'ID': 4, 'temperature': null, 'density': 740.0, 'volume': null, 'massflowbegin': 74.847, 'massflowend': 74.847, 'mass': 0, 'datetime': '2023-09-01T13:00:00.000+00:00', 'createdAtDate': '2023-09-03T01:46:53.574+06:00'}, {'ID': 5, 'temperature': null, 'density': 734.3229, 'volume': null, 'massflowbegin': 74.8466, 'massflowend': 74.8466, 'mass': 0, 'datetime': '2023-09-03T13:00:00.000+00:00', 'createdAtDate': '2023-09-04T00:06:57.298+06:00'}, {'ID': 6, 'temperature': null, 'density': 738.3043, 'volume': null, 'massflowbegin': 74.8466, 'massflowend': 74.8466, 'mass': 0, 'datetime': '2023-09-04T13:00:00.000+00:00', 'createdAtDate': '2023-09-05T00:07:17.896+06:00'}, {'ID': 7, 'temperature': null, 'density': 735.2327, 'volume': null, 'massflowbegin': 74.8466, 'massflowend': 74.8466, 'mass': 0, 'datetime': '2023-09-05T13:00:00.000+00:00', 'createdAtDate': '2023-09-06T00:07:37.627+06:00'}, {'ID': 8, 'temperature': null, 'density': 736.0428, 'volume': null, 'massflowbegin': 74.8466, 'massflowend': 74.8466, 'mass': 0, 'datetime': '2023-09-06T13:00:00.000+00:00', 'createdAtDate': '2023-09-07T00:07:54.208+06:00'}, {'ID': 9, 'temperature': null, 'density': 737.0381, 'volume': null, 'massflowbegin': 74.8466, 'massflowend': 74.8466, 'mass': 0, 'datetime': '2023-09-07T13:00:00.000+00:00', 'createdAtDate': '2023-09-08T00:08:10.455+06:00'}, {'ID': 10, 'temperature': null, 'density': 748.191, 'volume': null, 'massflowbegin': 74.8466, 'massflowend': 74.8466, 'mass': 0, 'datetime': '2023-09-08T13:00:00.000+00:00', 'createdAtDate': '2023-09-09T00:08:31.546+06:00'}, {'ID': 11, 'temperature': null, 'density': 743.4589, 'volume': null, 'massflowbegin': 74.84663, 'massflowend': 74.84663, 'mass': 0, 'datetime': '2023-09-09T13:00:00.000+00:00', 'createdAtDate': '2023-09-10T00:08:52.744+06:00'}]
+    
+    // Get the select element
+    var selectTable = document.getElementById("select-table");
+      
+    var objectSelector = [
+        { value: "407001", text: "Амангельды отгрузка!" },
+        { value: "407004", text: "Амангельды емкость 1" },
+        { value: "407005", text: "Амангельды емкость 2" },
+        { value: "407002", text: "Жаркум отгрузка" },
+        { value: "407006", text: "Жаркум емкость 1" },
+        { value: "407007", text: "Жаркум емкость 2" },
+        { value: "407003", text: "Айракты отгрузка" },
+        { value: "407008", text: "Айракты емкость 1" },
+        { value: "407009", text: "Айракты емкость 2" }
+    ];
+
+    for (var i = 0; i < objectSelector.length; i++) {
+        var option = document.createElement("option");
+        option.value = objectSelector[i].value;
+        option.text = objectSelector[i].text;
+        selectTable.appendChild(option);
+    }
+
+    var tableSelected = selectTable.value
+    var tableType
+
+    if (tableSelected === "407001" || tableSelected === "407002" || tableSelected === "407003") {
+        columns = [
+            { title: "Номер", field: "ID" },
+            { title: "Дата", field: "datetime" },
+            { title: "Масса, т", field: "mass" },
+            { title: "Счетчик начало, т", field: "massflowbegin" },
+            { title: "Счетчик конец, т", field: "massflowend" },
+            { title: "Температура, С", field: "temperature" },
+            { title: "Плотность, кг/см2", field: "density" },
+        ]
+        tableType = 1
+    } else {
+        columns = [
+            { title: "Номер", field: "ID" },
+            { title: "Дата", field: "datetime" },
+            { title: "Масса, т", field: "mass" },
+            { title: "Уровень, см", field: "levelTank" },
+            { title: "Объем, м3", field: "volume" },
+            { title: "Температура, С", field: "temperature" },
+            { title: "Плотность, кг/см2", field: "density" },
+        ]
+        tableType = 2
+    }
+
+    var table
+
+    function shortenDateTime(text) {
+        const timestamp = Date.parse(text);
+        if (!isNaN(timestamp)) {
+        const date = new Date(timestamp);
+        const year = date.getFullYear();
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+        const hour = date.getHours().toString().padStart(2, '0');
+        const minute = date.getMinutes().toString().padStart(2, '0');
+        
+        return `${year}-${month}-${day} ${hour}:${minute}`;
+        }
+        return null; // Parsing failed
+        }
+        
+    // Function to convert JSON data to HTML table
+    // function createTable(jsonData) {
+        
+    //     // Create the table element
+    //     const table = document.getElementById('data-table');
+    //     let tbody = table.tbody
+    //     // document.createElement('tbody');
+    //     // Clear the table body
+    //     // tbody.innerHTML = '';
+
+    //     // Get the selected value from the dropdown
+    //     selectedTable = document.getElementById('select-table').value;
+
+    //     // Get the keys (column names) of the first object in the JSON data
+    //     columns = Object.values(jsonData[0]);
+    //     columns.push("action");
+    //     // console.log(columns)
+        
+    //     // Create the header element
+    //     let thead = document.createElement("thead");
+    //     let tr = document.createElement("tr");
+    //     // Loop through the column names and create header cells
+    //     columns.forEach((item) => {
+    //     let th = document.createElement("th");
+    //     th.innerText = item; // Set the column name as the text of the header cell
+    //     tr.appendChild(th); // Append the header cell to the header row
+    //     });
+
+    //     thead.appendChild(tr); // Append the header row to the header
+    //     table.append(tr) // Append the header to the table
+        
+    //     // Loop through the JSON data and create table rows
+    //     let data = Object.values(jsonData)
+    //     data.splice(0, 1);
+
+    //     data.forEach((row) => {
+    //     let tr = document.createElement("tr");      
+    //     columns.forEach(function (item) {        
+    //         let td = document.createElement("td");
+    //         if (item === 'action') {
+    //             // console.log('item',item)
+    //             // Add "Edit" and "Save" buttons to the row
+
+    //             const editButton = document.createElement('button');
+    //             editButton.textContent = 'Изменить';
+    //             editButton.className = 'edit-button'; // Assign the 'edit-button' class
+    //             td.appendChild(editButton);
+
+    //             // const saveCell = document.createElement('td');
+    //             const saveButton = document.createElement('button');
+    //             saveButton.textContent = 'Сохранить';
+    //             saveButton.style.display = 'none'; // Initially hide the Save button
+    //             saveButton.className = 'save-button'; // Assign the 'save-button' class
+    //             td.appendChild(saveButton);
+
+    //             // Attach the existing event listeners to the buttons
+    //             editButton.addEventListener('click', handleEditButtonClick);
+    //             saveButton.addEventListener('click', handleSaveButtonClick);
+    //         } else if (item === 'datetime' || item === 'createdAtDate') {
+    //             console.log(row[item])
+    //             const shortenedDate = shortenDateTime(row[item]);
+    //             console.log(shortenedDate)
+    //             td.textContent = shortenedDate;
+    //         } else {
+    //             td.textContent = row[item]; // Set the value as the text of the table cell
+    //         }
+    //     tr.appendChild(td); // Append the table cell to the table row
+    //     })
+    //     table.append(tr)
+    //     });
+    // };
+
+    function createTable(jsonData) {
+        // document.getElementById("createTable").addEventListener("click", function () {
+        if (table) {
+            // Destroy the existing table if it exists
+            table.destroy();
+        }
+        console.log(jsonData)
+        console.log(jsonData.columns)
+        console.log(jsonData.data)
+        // Create a new table with columns and data from JSON
+        table = new Tabulator("#table-container", {
+            layout: "fitColumns",
+            columns: jsonData.columns,
+            data: jsonData.data,
+        });
+    // });
+    }
+
+    function updateTable(selectedTable) {
+        // Send an AJAX request to your server to fetch data
+        const url = '/get_data?table=' + selectedTable
+        fetch(url)
+        .then(response => response.json())
+        .then(data => {
+        // console.log('Data from DB', data);
+        // const table = document.getElementById('data-table');
+        // const tbody = table.querySelector('tbody');
+        // // Clear the table body
+        // table.innerHTML = '';
+        // console.log('Create table')
+        
+        // Convert 'null' values to 0.0
+
+        
+        for (var key in data) {
+            if (data[key] === null) {
+                data[key] = 0.0; // This sets the value to null
+            }
+        }
+
+        var jsonData = {
+        columns: columns,
+        data: datas,
+        };
+
+        createTable(jsonData);
+        })
+    };
+
+    function handleEditButtonClick(event) {
+        var row = event.target.closest('tr');
+        var cells = row.querySelectorAll('td');
+        console.log(columns)
+        cells.forEach(function (cell, index) {
+        let column = columns[index];
+        // var columnName = cell.getAttribute('data-column-name'); // Get the column name
+        var cellValue = cell.textContent.trim(); // Get the cell value
+        var keepItReadOnly = ["action", "datetime","createdAtDate", "ID"]
+        // Convert text content to a select element for editing
+        if ( !keepItReadOnly.includes(column) ) { // Editable column is 'status'
+            // var select = document.createElement('select');
+            var input = document.createElement('input');
+            input.value = cell.textContent.trim();
+            cell.textContent = '';
+            cell.appendChild(input);
+
+            // Define the options and their values
+            // var options = [
+            // { value: 'SDTBY', text: 'Переслать' },
+            // { value: 'STOP', text: 'Не отправлять' },
+            // { value: 'SUCCESS', text: 'Отправленно' }
+            // ];
+
+            // Create and append options
+            // options.forEach(function (optionData) {
+            // var option = document.createElement('option');
+            // option.value = optionData.value;
+            // option.textContent = optionData.text;
+
+            // // Set the selected attribute if the option matches the cell value
+            // if (optionData.value === cellValue) {
+            //    option.selected = true;
+            // }
+
+            // input.appendChild(option);
+            // });
+
+            // cell.textContent = ''; // Clear the cell's text content
+            // cell.appendChild(select);
+        }
+        });
+
+    // Show the "Save" button and hide the "Edit" button
+    row.querySelector('.edit-button').style.display = 'none';
+    row.querySelector('.save-button').style.display = 'block';
+    };
+
+    // Define the event listener for the "Save" button
+    function handleSaveButtonClick(event) {
+        var row = event.target.closest('tr');
+        var cells = row.querySelectorAll('td');
+        var updatedData = {};
+
+        cells.forEach(function (cell, index) {
+        // var columnName = cell.getAttribute('data-column-name'); // Get the column name
+        let column = columns[index];
+        var cellValue = cell.textContent.trim(); // Get the cell value
+        var input = cell.querySelector('input'); // Find the input field (if it exists)
+        // var keepItReadOnly = ["action", "datetime","createdAtDate", "ID"]
+        if (input) {
+            updatedData[column] = input.value; // Store the updated value by column name
+            cell.textContent = input.value; // Convert input field back to plain text
+        }
+        console.log(updatedData)
+        if (column === 'ID') {
+            updatedData[column] = cellValue;
+        }
+        });
+
+        // Send updatedData to the server using an AJAX request
+        const url = '/update_data?table=' + selectedTable
+        fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(updatedData)
+        })
+        .then(function (response) {
+            if (response.ok) {
+            // Data successfully updated
+            row.querySelector('.save-button').style.display = 'none';
+            row.querySelector('.edit-button').style.display = 'block';
+            } else {
+            // Handle error
+            console.error('Error updating data');
+            }
+        })
+        .catch(function (error) {
+            // Handle network error
+            console.error(error);
+        });
+        }
+
+    // Update the table every minute (60,000 milliseconds)
+    setInterval(updateTable(document.getElementById('select-table').value), 60000);
+
+    // Initial update when the page loads
+    updateTable(document.getElementById('select-table').value);
+
+    // Add an event listener to the selector
+    document.getElementById('select-table').addEventListener('change', function () {
+        const selectedTable = this.value;
+    updateTable(selectedTable);
+    });
+    
+    // Add event listeners to existing "Edit" and "Save" buttons
+    document.querySelectorAll('.edit-button').forEach(function (editButton) {
+    editButton.addEventListener('click', handleEditButtonClick);
+    });
+    // 
+    document.querySelectorAll('.save-button').forEach(function (saveButton) {
+    saveButton.addEventListener('click', handleSaveButtonClick);
+    });
+
+</script>
+
+{% endblock javascripts %}
