@@ -1,0 +1,245 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Tables {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+
+<style>
+    /* Table Styles */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        background-color: #f8f9fe;
+    }
+    th, td {
+        padding: 10px;
+        text-align: left;
+        border-bottom: 1px solid #e0e0e0;
+    }
+    th {
+        background-color: #5e72e4;
+        color: #fff;
+    }
+
+    /* Table Header Styles */
+    th.text-uppercase {
+        text-transform: uppercase;
+        font-size: 12px;
+        font-weight: bold;
+        opacity: 0.7;
+    }
+
+    /* Status Badge Styles */
+    .badge {
+        font-size: 12px;
+        font-weight: bold;
+        padding: 5px 10px;
+        border-radius: 15px;
+    }
+    .bg-gradient-success {
+        background: linear-gradient(45deg, #00f260, #0575e6);
+        color: white;
+    }
+    .bg-gradient-secondary {
+        background: linear-gradient(45deg, #00f260, #0575e6);
+        color: white;
+    }
+
+    /* Edit Link Styles */
+    .text-secondary {
+        color: #6e84a3;
+    }
+
+    /* Dropdown Styles */
+    .horizontal-container {
+        display: flex;
+        align-items: center;
+    }
+    /* Tooltip Styles (You may want to add CSS for tooltips) */
+    /* .tooltip {
+    /* Your tooltip styles here */
+    /*} */
+</style>
+
+{% endblock stylesheets %}
+
+{% block content %}
+<link href="/static/assets/css/tabulator.min.css" rel="stylesheet">
+<script type="text/javascript" src="/static/assets/js/tabulator.min.js"></script>
+<div class="container-fluid py-4">
+    <div class="row">
+      <div class="col-12">
+        <div class="card my-4">
+          <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
+            <div class="bg-gradient-primary shadow-primary border-radius-lg pt-4 pb-3">
+              <h6 class="text-white text-capitalize ps-3">Технологические данные по объектам ИСУН</h6>
+            </div>
+          </div>
+          <div class="card-body px-0 pb-2">
+            <div class="table-responsive p-0" style="display: inline-flex;">
+                <label style="margin-left: 10px;">Выбрать объект: </label>
+                <select class="border-radius-lg" id="select-table" style="display: inline-block; margin-left: 10px; margin-bottom: 10px; height: 30px;">
+                    {% for option in options %}
+                        <option value="{{ option.value }}">{{ option.text }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="border-radius-lg" id="table-container" style="display: inline-flex; margin-left: 10px;  margin-right: 10px; margin-bottom: 10px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+<script>
+
+    var tableSelected
+    var objectListType1 = ["407001","407002","407003"]
+    var objectListType2 = ["407004","407005","407006","407007","407008","407009"]
+    var tableType
+    var datas
+    var columns
+
+    var objectSelector = [
+        { value: "407001", text: "Амангельды отгрузка!" },
+        { value: "407004", text: "Амангельды емкость 1" },
+        { value: "407005", text: "Амангельды емкость 2" },
+        { value: "407002", text: "Жаркум отгрузка" },
+        { value: "407006", text: "Жаркум емкость 1" },
+        { value: "407007", text: "Жаркум емкость 2" },
+        { value: "407003", text: "Айракты отгрузка" },
+        { value: "407008", text: "Айракты емкость 1" },
+        { value: "407009", text: "Айракты емкость 2" }
+    ];
+
+    var tableSelector = document.getElementById("select-table");
+    for (var i = 0; i < objectSelector.length; i++) {
+        var option = document.createElement("option");
+        option.value = objectSelector[i].value;
+        option.text = objectSelector[i].text;
+        tableSelector.appendChild(option);
+    }
+
+    function shortenDateTime(text) {
+        const timestamp = Date.parse(text);
+        if (!isNaN(timestamp)) {
+        const date = new Date(timestamp);
+        const year = date.getFullYear();
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+        return `${year}-${month}-${day}`;
+        }
+        return null; // Parsing failed
+        }
+    
+    function generateNewColumns(tableName) {
+        // var columns
+        if (tableName == "407001" || tableName == "407002" || tableName == "407003") {
+            return [
+                { title: "Номер", field: "ID", frozen:true },
+                { title: "Дата", field: "datetime", width:150, frozen:true },
+                { title: "Масса, т",field: "mass", editor:true },
+                { title: "Счетчик начало, т", field: "massflowbegin", editor:true, editor: "input", validator:["min:0", "numeric"] },
+                { title: "Счетчик конец, т", field: "massflowend", editor:true, editor: "input" },
+                { title: "Температура, С", field: "temperature", editor:true, editor: "input" },
+                { title: "Плотность, кг/см2", field: "density", editor:true, editor: "input" },
+            ]
+        } else {
+            return [
+                { title: "Номер", field: "ID", frozen:true },
+                { title: "Дата", field: "datetime", width:150, frozen:true },
+                { title: "Масса, т", field: "mass", editor:true, editor: "input" },
+                { title: "Уровень, см", field: "tankLevel", editor:true, editor: "input" },
+                { title: "Объем, м3", field: "volume", editor:true, editor: "input" },
+                { title: "Температура, С", field: "temperature", editor:true, editor: "input" },
+                { title: "Плотность, кг/см2", field: "density", editor:true, editor: "input" },
+            ]
+        }
+    };
+
+    function sendToServer(data) {
+
+        console.log('data', data)
+        
+        const url = '/update_datas?table=' + tableSelector.value
+        // Send the data to the server via a POST request
+        fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+        })
+        .then(function(response) {
+            if (response.ok) {
+                // Data successfully updated on the server
+            } else {
+                // Handle error
+                console.error("Error updating data");
+            }
+        })
+        .catch(function(error) {
+            // Handle network error
+            console.error(error);
+        });
+    };
+
+    // Create a new table with columns and data from JSON
+    var table = new Tabulator("#table-container", {
+        layout:"fitDataFill",
+        height:"550px",
+        pagination:"local",
+        paginationSize:15,
+        paginationSizeSelector:[10, 15, 25],
+        columns: generateNewColumns("407001"),
+        layoutColumnsOnNewData:true,
+    });
+
+    function updateTableData(tableName) {
+        const url = '/get_data?table=' + tableName
+        // Fetch new data, e.g., via AJAX request
+        fetch(url)
+            .then(response => response.json())
+            .then(newData => {
+                // Update the table with the new data
+                if (table) {
+                  table.setData(newData);
+                }
+            })
+            .catch(error => {
+                console.error('Error updating table data:', error);
+            });
+    };
+
+    // Add an event listener to the selector
+    document.getElementById('select-table').addEventListener('change', function () {
+        updateTableData(this.value)
+    });
+
+    table.on("tableBuilt", function(){
+        updateTableData(tableSelector.value)
+    });
+
+    table.on("cellEdited", function(cell) {
+        // Get the edited value
+        var editedValue = cell.getValue();
+        var data = cell.getRow().getData();
+        // You can now send the edited value to your server using a POST request
+        sendToServer(data);
+    });
+
+    // Update the table every minute (60,000 milliseconds)
+    setInterval(function() {
+        updateTableData(tableSelector.value);
+    }, 60000);
+
+
+</script>
+
+{% endblock javascripts %}
